@@ -99,3 +99,38 @@ button:active{transform:translateY(1px)}
 }
 .switch input:checked + .slider{background:rgba(124,92,255,.9)}
 .switch input:checked + .slider:before{transform:translateX(20px)}
+.saved-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.saved-item{
+  padding:10px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.06);
+  background:#0f1220;
+}
+.saved-top{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.code{
+  font-weight:750;
+}
+.saved-actions{
+  display:flex;
+  gap:8px;
+}
+.saved-actions button{
+  width:auto;
+  padding:8px 10px;
+  background:#1a1f33;
+  border:1px solid rgba(255,255,255,.10);
+}
+.saved-actions button.danger{
+  background:#2b1320;
+  border-color:rgba(255,120,160,.25);
+  }
