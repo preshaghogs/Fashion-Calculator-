@@ -1,0 +1,101 @@
+:root{
+  --bg:#0b0c10;
+  --card:#12141a;
+  --text:#f4f6ff;
+  --muted:#aab0c0;
+  --line:#242a36;
+  --accent:#7c5cff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:linear-gradient(180deg,#0b0c10,#0d1020);
+  color:var(--text);
+}
+.wrap{max-width:1100px;margin:0 auto;padding:18px}
+.card{
+  background:rgba(18,20,26,.92);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;
+  padding:14px;
+  box-shadow:0 12px 30px rgba(0,0,0,.35);
+}
+.header{
+  display:flex;
+  gap:12px;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:14px;
+}
+h1{font-size:20px;margin:0 0 4px}
+h2{font-size:15px;margin:0 0 10px}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:12px;
+}
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+  .header{flex-direction:column}
+}
+.row{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+input,select,button{
+  width:100%;
+  padding:10px 10px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.10);
+  background:#0f1220;
+  color:var(--text);
+}
+button{
+  background:var(--accent);
+  border:none;
+  cursor:pointer;
+  font-weight:650;
+}
+button:active{transform:translateY(1px)}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.hint{font-size:12px;margin-top:4px}
+.days{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.days label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:10px;
+  background:#0f1220;
+}
+.result-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.res{
+  padding:10px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.06);
+  background:#0f1220;
+}
+.value{font-size:22px;font-weight:750;margin-top:4px}
+.tier{display:flex;gap:10px;align-items:center;max-width:520px}
+.switch{position:relative;display:inline-block;width:46px;height:26px;flex:0 0 auto}
+.switch input{display:none}
+.slider{
+  position:absolute;cursor:pointer;inset:0;
+  background:#2a2f3d;border-radius:999px;transition:.2s;
+}
+.slider:before{
+  content:""; position:absolute; height:20px;width:20px; left:3px; top:3px;
+  background:white;border-radius:50%;transition:.2s;
+}
+.switch input:checked + .slider{background:rgba(124,92,255,.9)}
+.switch input:checked + .slider:before{transform:translateX(20px)}
