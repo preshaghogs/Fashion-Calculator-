@@ -13,7 +13,7 @@ function countWorkingDaysInMonth(dateObj, workingDows){
   let count = 0;
   for(let d = 1; d <= daysInMonth; d++){
     const dt = new Date(y, m, d);
-    const dow = dt.getDay(); // 0..6
+    const dow = dt.getDay();
     if(workingDows.includes(dow)) count++;
   }
   return count;
@@ -27,7 +27,6 @@ function roundNearest(value, nearest){
   return Math.round(value / n) * n;
 }
 
-// margin is % of selling price (pre-tax): price = cost / (1 - margin)
 function priceFromMargin(preTaxCost, marginPct){
   const m = clamp(marginPct / 100, 0, 0.95);
   return preTaxCost / (1 - m);
@@ -39,18 +38,10 @@ function fmt(num){
 }
 
 function setPremiumEditing(isPremium){
-  const monthlyFixed = el("monthlyFixed");
-  const mSafe = el("mSafe");
-  const mStd = el("mStd");
-  const mPrem = el("mPrem");
-
-  monthlyFixed.disabled = !isPremium;
-
-  mSafe.disabled = !isPremium;
-  mStd.disabled = !isPremium;
-  mPrem.disabled = !isPremium;
-
-  // keep values but prevent editing when off
+  el("monthlyFixed").disabled = !isPremium;
+  el("mSafe").disabled = !isPremium;
+  el("mStd").disabled  = !isPremium;
+  el("mPrem").disabled = !isPremium;
 }
 
 function syncModeUI(){
@@ -58,6 +49,88 @@ function syncModeUI(){
   el("retailHoursRow").style.display = mode === "retail" ? "flex" : "none";
   el("wholesaleUnitsRow").style.display = mode === "wholesale" ? "flex" : "none";
 }
+
+function randomCode(){
+  // short, human-ish: FPP-YYMMDD-XXXX
+  const d = new Date();
+  const yy = String(d.getFullYear()).slice(-2);
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  const xxxx = Math.random().toString(36).slice(2,6).toUpperCase();
+  return `FPP-${yy}${mm}${dd}-${xxxx}`;
+}
+
+const STORE_KEY = "fpp_saved_quotes_v1";
+
+function loadSaved(){
+  try{
+    return JSON.parse(localStorage.getItem(STORE_KEY) || "[]");
+  }catch{
+    return [];
+  }
+}
+
+function saveAll(list){
+  localStorage.setItem(STORE_KEY, JSON.stringify(list));
+}
+
+function renderSaved(){
+  const box = el("savedList");
+  if(!box) return;
+
+  const items = loadSaved();
+  if(items.length === 0){
+    box.innerHTML = `<div class="muted small">No saved quotes yet.</div>`;
+    return;
+  }
+
+  box.innerHTML = items
+    .sort((a,b) => b.createdAt - a.createdAt)
+    .map(item => {
+      const when = new Date(item.createdAt).toLocaleString();
+      return `
+        <div class="saved-item" data-id="${item.id}">
+          <div class="saved-top">
+            <div>
+              <div class="code">${item.code}</div>
+              <div class="muted small">${when} • ${item.mode}</div>
+            </div>
+            <div class="saved-actions">
+              <button type="button" data-act="copy">Copy code</button>
+              <button type="button" class="danger" data-act="delete">Delete</button>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div class="result-grid">
+            <div class="res"><div class="label muted">Safe</div><div class="value">${fmt(item.safe)}</div></div>
+            <div class="res"><div class="label muted">Standard</div><div class="value">${fmt(item.std)}</div></div>
+            <div class="res"><div class="label muted">Premium</div><div class="value">${fmt(item.prem)}</div></div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  box.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const act = e.currentTarget.dataset.act;
+      const card = e.currentTarget.closest(".saved-item");
+      const id = card.dataset.id;
+
+      if(act === "copy"){
+        const item = loadSaved().find(x => x.id === id);
+        if(item) navigator.clipboard?.writeText(item.code);
+      }
+      if(act === "delete"){
+        const next = loadSaved().filter(x => x.id !== id);
+        saveAll(next);
+        renderSaved();
+      }
+    });
+  });
+}
+
+let lastComputed = null;
 
 function calc(){
   const mode = el("mode").value;
@@ -101,8 +174,6 @@ function calc(){
         overheadExplain = `Overhead/month ÷ working days (${workingDays}) = ${overheadPerWorkingDay.toFixed(2)} per working day; ÷ hours/day (${hpday}) = ${overheadPerHour.toFixed(2)} per hour; × ${hours} hours.`;
       } else {
         const units = Math.max(1, Number(el("units").value || 1));
-        // Allocate 1 working day of overhead across the batch (simple + practical)
-        // If you prefer overhead per unit based on a chosen number of working days, you can extend this.
         allocatedOverhead = overheadPerWorkingDay / units;
         overheadExplain = `Overhead/month ÷ working days (${workingDays}) = ${overheadPerWorkingDay.toFixed(2)} per working day; ÷ ${units} units.`;
       }
@@ -129,12 +200,38 @@ function calc(){
     `Total pre-tax cost = production (${productionCost}) + extras (${extraExpenses}) + overhead (${allocatedOverhead.toFixed(2)}). ` +
     `Working days in month: ${workingDays}. ` +
     overheadExplain;
+
+  const code = randomCode();
+  if(el("quoteCode")) el("quoteCode").value = code;
+
+  lastComputed = {
+    code,
+    mode,
+    safe: safeTaxIncl,
+    std: stdTaxIncl,
+    prem: premTaxIncl,
+    createdAt: Date.now()
+  };
+}
+
+function saveQuote(){
+  if(!lastComputed){
+    // force calculation first so results + code exist
+    calc();
+  }
+  const item = {
+    id: crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2),
+    ...lastComputed
+  };
+  const list = loadSaved();
+  list.push(item);
+  saveAll(list);
+  renderSaved();
 }
 
 function init(){
   syncModeUI();
 
-  // default date = today
   const today = new Date();
   const yyyy = today.getFullYear();
   const mm = String(today.getMonth()+1).padStart(2,"0");
@@ -147,13 +244,15 @@ function init(){
   el("isPremium").addEventListener("change", (e) => { setPremiumEditing(e.target.checked); });
   el("calcBtn").addEventListener("click", calc);
 
-  // optional: auto-recalc on input
-  document.querySelectorAll("input,select").forEach(node => {
-    node.addEventListener("input", () => {
-      // keep it light; you can comment this out if you only want button calc
-      // calc();
-    });
-  });
+  if(el("saveBtn")) el("saveBtn").addEventListener("click", saveQuote);
+
+  renderSaved();
 }
 
 init();
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+  </html>
