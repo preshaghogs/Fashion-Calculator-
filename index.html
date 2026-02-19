@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fashion Price Pro</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="card header">
+      <div>
+        <h1>Fashion Price Pro</h1>
+        <p class="muted">Pricing calculator with working-day overhead + tax-inclusive ranges</p>
+      </div>
+      <div class="tier">
+        <label class="switch">
+          <input id="isPremium" type="checkbox" />
+          <span class="slider"></span>
+        </label>
+        <span class="muted">Premium mode (unlock margin editing + fixed-expense overhead)</span>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div class="card">
+        <h2>Mode</h2>
+        <div class="row">
+          <label>Pricing type</label>
+          <select id="mode">
+            <option value="retail">Retail (allocate overhead per hour)</option>
+            <option value="wholesale">Wholesale (allocate overhead per unit)</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label>Date (for month working days)</label>
+          <input id="quoteDate" type="date" />
+        </div>
+
+        <div class="row">
+          <label>Tax rate (%)</label>
+          <input id="taxRate" type="number" step="0.01" min="0" value="20" />
+        </div>
+
+        <div class="row">
+          <label>Rounding (nearest)</label>
+          <select id="roundTo">
+            <option value="1000" selected>1000</option>
+            <option value="500">500</option>
+            <option value="100">100</option>
+            <option value="0">No rounding</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Costs</h2>
+
+        <div class="row">
+          <label>Production cost (amount)</label>
+          <input id="productionCost" type="number" step="0.01" min="0" placeholder="e.g., 10000" />
+        </div>
+
+        <div class="row">
+          <label>Extra expenses (amount)</label>
+          <input id="extraExpenses" type="number" step="0.01" min="0" value="0" />
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <label>Monthly fixed expenses (amount)</label>
+          <input id="monthlyFixed" type="number" step="0.01" min="0" value="0" />
+          <div class="hint muted">Premium-only: included in calculations when Premium is ON</div>
+        </div>
+
+        <div class="row">
+          <label>Working hours per day</label>
+          <input id="hoursPerDay" type="number" step="0.25" min="0" value="8" />
+          <div class="hint muted">Used to compute overhead per hour (Retail)</div>
+        </div>
+
+        <div class="row" id="retailHoursRow">
+          <label>Production time (hours)</label>
+          <input id="productionHours" type="number" step="0.25" min="0" value="1" />
+        </div>
+
+        <div class="row" id="wholesaleUnitsRow" style="display:none;">
+          <label>Units in batch</label>
+          <input id="units" type="number" step="1" min="1" value="1" />
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Work schedule</h2>
+        <p class="muted">Select your working days (used for overhead allocation)</p>
+
+        <div class="days">
+          <label><input type="checkbox" class="day" data-dow="1" checked /> Mon</label>
+          <label><input type="checkbox" class="day" data-dow="2" checked /> Tue</label>
+          <label><input type="checkbox" class="day" data-dow="3" checked /> Wed</label>
+          <label><input type="checkbox" class="day" data-dow="4" checked /> Thu</label>
+          <label><input type="checkbox" class="day" data-dow="5" checked /> Fri</label>
+          <label><input type="checkbox" class="day" data-dow="6" /> Sat</label>
+          <label><input type="checkbox" class="day" data-dow="0" /> Sun</label>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>Profit margin targets</h2>
+        <p class="muted">Safe / Standard / Premium. Editable in Premium mode.</p>
+
+        <div class="row">
+          <label>Safe margin (%)</label>
+          <input id="mSafe" type="number" step="0.1" min="0" max="95" value="55" />
+        </div>
+        <div class="row">
+          <label>Standard margin (%)</label>
+          <input id="mStd" type="number" step="0.1" min="0" max="95" value="65" />
+        </div>
+        <div class="row">
+          <label>Premium margin (%)</label>
+          <input id="mPrem" type="number" step="0.1" min="0" max="95" value="75" />
+        </div>
+
+        <div class="hint muted">
+          Margin here means profit is X% of selling price (pre-tax). Example: 65% margin => price = cost / (1 - 0.65).
+        </div>
+
+        <div class="row">
+          <button id="calcBtn">Calculate</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Result (tax included)</h2>
+      <div class="result-grid">
+        <div class="res">
+          <div class="label muted">Safe</div>
+          <div id="outSafe" class="value">—</div>
+        </div>
+        <div class="res">
+          <div class="label muted">Standard</div>
+          <div id="outStd" class="value">—</div>
+        </div>
+        <div class="res">
+          <div class="label muted">Premium</div>
+          <div id="outPrem" class="value">—</div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="muted small" id="explain">Enter values and tap Calculate.</div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+  </html>
